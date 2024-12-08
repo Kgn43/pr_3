@@ -21,11 +21,19 @@ public:
 
 template <typename T>
 class List{
-public:
     ListNode<T>* first;
     ListNode<T>* last;
+    size_t size;
+public:
+    friend class hashMap;
+    friend class Set;
+    List(): first(nullptr), last(nullptr), size(0) {}
 
-    List(): first(nullptr), last(nullptr) {}
+    List(size_t len) : first(nullptr), last(nullptr), size(0) {
+        for (size_t i = 0; i < len; ++i) {
+            this->headInsert(T());
+        }
+    }
 
     void headInsert(T value);
     void backInsert(T value);
@@ -33,6 +41,7 @@ public:
     void delLast();
     void delByVal(T val);
     bool find(T value);
+    size_t get_size() const;
 
     friend ostream& operator<<(ostream& os, const List<T>& ls) {
         ListNode<T> *curr = ls.first;
@@ -48,16 +57,22 @@ public:
         return os;
     }
 
+    T& operator[](size_t index) const {
+        if (index >= size) {
+            throw std::out_of_range("Index out of range");
+        }
+        auto tmp = this->first;
+        for (int i = 0; i != index; ++i) {
+            tmp = tmp->next;
+        }
+        return tmp->value;
+    }
 
 };
 
 template struct List<Pair>;
 template struct List<int>;
 template struct List<string>;
-
-List<string> splitToList(const string &input, const char &delimiter = ' ');
-string unSplitList(const List<string>& input, const char &delimiter = ' ');
-List<Pair> splitToListPair(const string &input, const string& pairDelimiter, const char &keyValueDelimiter);
 
 
 #endif // LIST_H

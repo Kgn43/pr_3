@@ -72,22 +72,12 @@ int Set::Get() const {
     return 0;
 }
 
-Set setFromStr(const string& line){
-    const arr<string> values = splitToArr(line, '_');
-    Set output;
-    for (size_t i = 0; i < values.size; ++i){
-        output.insert(stoi(values[i]));
-    }
-    return output;
+
+size_t Set::size() const {
+    return this->pairCount;
 }
 
-string strFromSet(Set input){
-    string output;
-    int num;
-    while (input.pairCount != 0){
-        num = input.Get();
-        output += to_string(num) + "_";
-        input.del(num);
-    }
-    return output;
+size_t Set::get_buckets() const {
+    return this->bucketCount;
 }
+

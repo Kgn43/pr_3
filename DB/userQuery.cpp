@@ -11,7 +11,7 @@ commands commandRequest(const std::string &input){
 
 string userQuery(const string& userQuery, const json& structureJSON){
     const arr<string> query = splitToArr(userQuery);
-    if (query.size == 0){
+    if (query.get_size() == 0){
         return "query was not entered";
     }
     const commands comm = commandRequest(query[0]);

@@ -6,7 +6,7 @@
 #include <thread>
 #include <arpa/inet.h>
 
-#include "ip.h"
+#include "../ip.h"
 #include "makeStructure.h"
 #include "userQuery.h"
 
@@ -76,7 +76,7 @@ void startServer(const json& structureJSON) {
 
 
 int main() {
-    string strcrt = "strktr.json";
+    string strcrt = "../DB/strktr.json";
     json structureJSON;
     try{
         ifstream jsonFile (strcrt);

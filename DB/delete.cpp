@@ -2,7 +2,7 @@
 
 
 delComm toDelQuery(arr<string> query){
-    if (query.size < 3){
+    if (query.get_size() < 3){
         stringstream serr;
         serr << "wrong command: syntax error";
         throw runtime_error(serr.str());
@@ -14,14 +14,14 @@ delComm toDelQuery(arr<string> query){
     }
     delComm output;
     output.target = query[2];
-    if (query.size > 4) {
+    if (query.get_size() > 4) {
         if (query[3] != "where") {
             stringstream serr;
             serr << "wrong command: there is no keyword \"where\", or there more than one table";
             throw runtime_error(serr.str());
         }
         arr<string> tmp;
-        for (size_t i = 4; i < query.size; ++i){//записать условие
+        for (size_t i = 4; i < query.get_size(); ++i){//записать условие
             tmp.push_back(query[i]);
         }
         output.condition = unsplit(tmp, ' ');
@@ -36,7 +36,7 @@ delComm toDelQuery(arr<string> query){
 bool delCondCheck(const string& conds, const arr<string>& headers, const string& line){
     arr<string> cond = splitToArr(conds, " OR ");
     arr<arr<string>> condition;
-    for (size_t i = 0; i < cond.size; ++i){
+    for (size_t i = 0; i < cond.get_size(); ++i){
         condition.push_back(splitToArr(cond[i], " AND "));
     }
     arr<string> splittenLine = splitToArr(line, ';');
@@ -47,10 +47,10 @@ bool delCondCheck(const string& conds, const arr<string>& headers, const string&
     arr<string> currentCondition;
     bool isDelForAND = true;
     bool isDelForOR = false;
-    for (size_t i = 0; i < condition.size; ++i){
-        for (size_t j = 0; j < condition[i].size; ++j){
+    for (size_t i = 0; i < condition.get_size(); ++i){
+        for (size_t j = 0; j < condition[i].get_size(); ++j){
             currentCondition = splitToArr(condition[i][j], ' ');
-            if (currentCondition.size != 3){
+            if (currentCondition.get_size() != 3){
                 stringstream serr;
                 serr << "wrong condition";
                 throw runtime_error(serr.str());

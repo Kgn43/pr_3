@@ -6,19 +6,25 @@
 using namespace std;
 
 template<typename T>
-class queue{
-public:
+class Queue{
     Node<T>* head;
     Node<T>* tail;
+    size_t size;
+public:
+    Queue() : head(nullptr), tail(nullptr), size(0) {}
 
-    queue() : head(nullptr), tail(nullptr) {}
+    Queue(const size_t len) : head(nullptr), tail(nullptr), size(0) {
+        for (size_t i = 0; i < len; ++i) {
+            this->push(T());
+        }
+    }
 
     void push(T val);
     void pop();
     T getFirst();
-    void clear();
+    size_t get_size() const;
 
-    friend ostream& operator<<(ostream& os, const queue<T>& que) {
+    friend ostream& operator<<(ostream& os, const Queue& que) {
         Node<T>* curr = que.head;
         while (curr != nullptr){
             os << "[" << curr->value << "]";
@@ -30,13 +36,20 @@ public:
         return os;
     }
 
+    T& operator[](const size_t index) const {
+        if (index >= size) {
+            throw std::out_of_range("Index out of range");
+        }
+        auto tmp = this->head;
+        for (int i = 0; i != index; ++i) {
+            tmp = tmp->next;
+        }
+        return tmp->value;
+    }
+
 };
 
-
-template struct queue<int>;
-template struct queue<string>;
-
-queue<string> splitToQueue(const string &input, char delimiter = ' ');
-string unSplitQueue(const queue<string>& input, char delimiter = ' ');
+template struct Queue<int>;
+template struct Queue<string>;
 
 #endif // QUEUE_H

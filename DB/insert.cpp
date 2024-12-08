@@ -12,13 +12,13 @@ void sizeCheck(int insertionSize, const string& tableName, const json& structure
 
 
 insComm toInsQuery(arr<string> query){
-    if (query.data[1] != "into"){
+    if (query[1] != "into"){
         stringstream serr;
         serr << "wrong command: there is no \"into\"";
         throw runtime_error(serr.str());
     }
     size_t valuesPlc = 0;
-    for (size_t i = 0; i < query.size; ++i){
+    for (size_t i = 0; i < query.get_size(); ++i){
         if (query[i] == "values") valuesPlc = i;
     }
     if (valuesPlc == 0){
@@ -26,13 +26,13 @@ insComm toInsQuery(arr<string> query){
         serr << "wrong command: there is no \"values\"";
         throw runtime_error(serr.str());
     }
-    if (valuesPlc + 1 == query.size){//если после values ничего нет
+    if (valuesPlc + 1 == query.get_size()){//если после values ничего нет
         stringstream serr;
         serr << "wrong command: nothing to insert";
         throw runtime_error(serr.str());
     }
     insComm output;
-    for (size_t i = 2; i < query.size; ++i){
+    for (size_t i = 2; i < query.get_size(); ++i){
         if (i < valuesPlc) output.target.push_back(query[i]);
         else if (i > valuesPlc) output.data.push_back(query[i]);
     }
@@ -42,16 +42,16 @@ insComm toInsQuery(arr<string> query){
 
 void insert(const json& structure, arr<string> inputQuery){
     insComm query = toInsQuery(inputQuery); //проверяем правильность команды по синтаксису, отделяем таблицы от значений
-    for (size_t i = 0; i < query.target.size; ++i){//вставка во все таблицы
+    for (size_t i = 0; i < query.target.get_size(); ++i){//вставка во все таблицы
         tableCheck(query.target[i], structure);//существует ли таблица?
-        sizeCheck(static_cast<int>(query.data.size), query.target[i], structure); //не слишком ли много колонок для этой таблицы?
+        sizeCheck(static_cast<int>(query.data.get_size()), query.target[i], structure); //не слишком ли много колонок для этой таблицы?
         int tableStrLen = static_cast<int>(structure["structure"][query.target[i]].size());
         string values = unsplit(query.data, ';');
         string path = static_cast<string>(structure["name"]) + "/" + query.target[i]; //директория таблицы
         int currentPk = getCurrPk(path + "/" + query.target[i]); //текущий Pk
         values = to_string(currentPk) + ";" + values;//добавили pk к вводу
-        if (tableStrLen >= query.data.size){
-            while (tableStrLen != query.data.size){
+        if (tableStrLen >= query.data.get_size()){
+            while (tableStrLen != query.data.get_size()){
                 tableStrLen--;
                 values += ";";
             }

@@ -3,7 +3,7 @@
 
 #include <string>
 #include "nlohmann/json.hpp"
-#include "arr.h"
+#include "../classes/arr.h"
 #include "common.h"
 
 

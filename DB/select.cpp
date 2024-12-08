@@ -2,7 +2,7 @@
 
 
 selectComm toSelectQuery(arr<string> query){
-    if (query.size <= 3){
+    if (query.get_size() <= 3){
         stringstream serr;
         serr << "wrong command: syntax error";
         throw runtime_error(serr.str());
@@ -13,7 +13,7 @@ selectComm toSelectQuery(arr<string> query){
         throw runtime_error(serr.str());
     }
     size_t fromPlc = 0;
-    for (size_t i = 0; i < query.size; ++i){
+    for (size_t i = 0; i < query.get_size(); ++i){
         if (query[i] == "from") fromPlc = i;
     }
     if (fromPlc == 0){
@@ -26,8 +26,8 @@ selectComm toSelectQuery(arr<string> query){
         serr << "wrong command: there is no tables";
         throw runtime_error(serr.str());
     }
-    size_t wherePlc = query.size;
-    for (size_t i = 0; i < query.size; ++i){
+    size_t wherePlc = query.get_size();
+    for (size_t i = 0; i < query.get_size(); ++i){
         if (query[i] == "where") wherePlc = i;
     }
     selectComm output;
@@ -37,11 +37,11 @@ selectComm toSelectQuery(arr<string> query){
     for (size_t i = fromPlc + 1; i < wherePlc; ++i){//записать условие
         output.tables.push_back(query[i]);
     }
-    if (wherePlc == query.size){
+    if (wherePlc == query.get_size()){
         output.condition = {};
     }
     else {
-        for (size_t i = wherePlc + 1; i < query.size; ++i){//записать условие
+        for (size_t i = wherePlc + 1; i < query.get_size(); ++i){//записать условие
             output.condition.push_back(query[i]);
         }
     }
@@ -94,8 +94,8 @@ int getIndexFromStr(const string& input){
 
 arr<int> addIfNotUnic(arr<int> arr1, arr<int> arr2){
     arr<int> output;
-    for (size_t i = 0; i < arr1.size; ++i){
-        for (size_t j = 0; j < arr2.size; ++j){
+    for (size_t i = 0; i < arr1.get_size(); ++i){
+        for (size_t j = 0; j < arr2.get_size(); ++j){
             if (arr1[i] == arr2[j]){
                 output.push_back(arr1[i]);
                 break;
@@ -110,27 +110,27 @@ arr<int> addIfNotUnic(arr<int> arr1, arr<int> arr2){
 arr<int> unicAppend(arr<int> inArr1, arr<int> inArr2) {
     bool isAppend;
     arr<int> outArr;
-    if (inArr1.size != 0){
+    if (inArr1.get_size() != 0){
         outArr.push_back(inArr1[0]);
     }
-    else if (inArr2.size != 0){
+    else if (inArr2.get_size() != 0){
         outArr.push_back(inArr2[0]);
     }
     else {
         return outArr;
     }
-    for (size_t i = 0; i < inArr1.size; i++){
+    for (size_t i = 0; i < inArr1.get_size(); i++){
         isAppend = true;
-        for (size_t j = 0; j < outArr.size; j++){
+        for (size_t j = 0; j < outArr.get_size(); j++){
             if (outArr[j] == inArr1[i]) isAppend = false;
         }
         if (isAppend){
             outArr.push_back(inArr1[i]);
         }
     }
-    for (size_t i = 0; i < inArr2.size; i++){
+    for (size_t i = 0; i < inArr2.get_size(); i++){
         isAppend = true;
-        for (size_t j = 0; j < outArr.size; j++){
+        for (size_t j = 0; j < outArr.get_size(); j++){
             if (outArr[j] == inArr2[i]) isAppend = false;
         }
         if (isAppend){
@@ -144,8 +144,8 @@ arr<int> unicAppend(arr<int> inArr1, arr<int> inArr2) {
 arr<int> connectCondition(const arr<arr<arr<int>>> &arr1){
     arr<int> outputArr;
     arr<int> andArr;
-    for (size_t i = 0; i < arr1.size; i++){
-        for (size_t j = 0; j < arr1[i].size; j++){
+    for (size_t i = 0; i < arr1.get_size(); i++){
+        for (size_t j = 0; j < arr1[i].get_size(); j++){
             if (j == 0){
                 andArr = arr1[i][j];
             }
@@ -154,7 +154,9 @@ arr<int> connectCondition(const arr<arr<arr<int>>> &arr1){
             }
         }
         outputArr = unicAppend(outputArr, andArr);
-        outputArr.sort();
+        if (outputArr.get_size() != 0) {
+            outputArr.sort();
+        }
     }
     return outputArr;
 }
@@ -162,10 +164,10 @@ arr<int> connectCondition(const arr<arr<arr<int>>> &arr1){
 
 void createIndexes(const arr<arr<arr<string>>>& condition, arr<arr<arr<int>>>& indexes) {
     // Убедимся, что массивы идентичных размеров
-    size_t size1 = condition.size;
+    size_t size1 = condition.get_size();
     indexes.resize(size1);
     for (size_t i = 0; i < size1; ++i) {
-        size_t size2 = condition[i].size;
+        size_t size2 = condition[i].get_size();
         indexes[i].resize(size2);
     
     }
@@ -173,7 +175,7 @@ void createIndexes(const arr<arr<arr<string>>>& condition, arr<arr<arr<int>>>& i
 
 
 arr<int> getPassNum(const json& structure, const arr<arr<arr<string>>>& condition){
-    arr<arr<arr<int>>> indexes(condition.size);
+    arr<arr<arr<int>>> indexes(condition.get_size());
     createIndexes(condition, indexes);
     string firstOperand;
     string secondOperand;
@@ -193,11 +195,11 @@ arr<int> getPassNum(const json& structure, const arr<arr<arr<string>>>& conditio
     arr<string> secondSplitedLine;
     arr<string> firstTableHeaders;
     arr<string> secondTableHeaders;
-    int firstHeaderNumber;
-    int secondHeaderNumber;
-    for (size_t i = 0; i < condition.size; ++i){
-        for (size_t j = 0; j < condition[i].size; ++j){
-            if (condition[i][j].size != 3){
+    size_t firstHeaderNumber;
+    size_t secondHeaderNumber;
+    for (size_t i = 0; i < condition.get_size(); ++i){
+        for (size_t j = 0; j < condition[i].get_size(); ++j){
+            if (condition[i][j].get_size() != 3){
                 stringstream serr;
                 serr << "wrong condition";
                 throw runtime_error(serr.str());
@@ -230,7 +232,6 @@ arr<int> getPassNum(const json& structure, const arr<arr<arr<string>>>& conditio
                         }
                         //открываем потоки чтения файлов таблиц
                         firstStream.open(firstPath + wayToTable);
-                        secondStream.open(secondPath + wayToTable);
                         //разбиваем заголовки на массив
                         firstTableHeaders = getHeaders(firstPath + wayToTable);
                         secondTableHeaders = getHeaders(secondPath + wayToTable);
@@ -238,27 +239,30 @@ arr<int> getPassNum(const json& structure, const arr<arr<arr<string>>>& conditio
                         firstHeaderNumber = firstTableHeaders.find(firstOperand);
                         secondHeaderNumber = secondTableHeaders.find(secondOperand);
                         //считываем строки пока можем
-                        while (getline(firstStream, firstGottenLine) && getline(secondStream, secondGottenLine)){
-                            if (firstGottenLine == "" || firstGottenLine == " ") continue;
-                            if (secondGottenLine == "" || secondGottenLine == " ") continue;
-                            if (oper == "="){
-                                //разбиваем строку для обращения по индексу колонки
-                                firstSplitedLine = splitToArr(firstGottenLine, ';');
-                                secondSplitedLine = splitToArr(secondGottenLine, ';');
-                                cout << firstSplitedLine << " " << firstHeaderNumber << endl << secondSplitedLine << secondHeaderNumber << endl;
-                                //проверка ОДНОГО условия
-                                if (firstSplitedLine[firstHeaderNumber] == secondSplitedLine[secondHeaderNumber]) {
-                                    indexes[i][j].push_back(getIndexFromStr(firstGottenLine));
+                        while (getline(firstStream, firstGottenLine)){
+                            if (firstGottenLine.empty() || firstGottenLine == " ") continue;
+                            secondStream.open(secondPath + wayToTable);
+                            while (getline(secondStream, secondGottenLine)) {
+                                if (secondGottenLine.empty() || secondGottenLine == " ") continue;
+                                if (oper == "="){
+                                    //разбиваем строку для обращения по индексу колонки
+                                    firstSplitedLine = splitToArr(firstGottenLine, ';');
+                                    secondSplitedLine = splitToArr(secondGottenLine, ';');
+                                    //cout << firstSplitedLine << " " << firstHeaderNumber << endl << secondSplitedLine << secondHeaderNumber << endl;
+                                    //проверка ОДНОГО условия
+                                    if (firstSplitedLine[firstHeaderNumber] == secondSplitedLine[secondHeaderNumber]) {
+                                        indexes[i][j].push_back(getIndexFromStr(firstGottenLine));
+                                    }
+                                }
+                                else {
+                                    stringstream serr;
+                                    serr << "wrong operator";
+                                    throw runtime_error(serr.str());
                                 }
                             }
-                            else {
-                                stringstream serr;
-                                serr << "wrong operator";
-                                throw runtime_error(serr.str());
-                            }
+                            secondStream.close();
                         }
                         firstStream.close();
-                        secondStream.close();
                     }
                 }
             }
@@ -304,7 +308,6 @@ arr<int> getPassNum(const json& structure, const arr<arr<arr<string>>>& conditio
         }
     }
     arr<int> pass = connectCondition(indexes);
-    cout << pass << endl;
     return pass;
 }
 
@@ -313,7 +316,7 @@ string getValueByIndex(json structure, const string& tableName, const arr<string
     string path = static_cast<string>(structure["name"]) + "/" + tableName + "/" + tableName;
     arr<string> headers = getHeaders(path + ".csv");
     int ind;
-    for (size_t i = 0; i < columnsName.size; ++i){
+    for (size_t i = 0; i < columnsName.get_size(); ++i){
         ind = headers.find(columnsName[i]);
         if (ind != -1) break;
     }
@@ -345,31 +348,30 @@ string getValueByIndex(json structure, const string& tableName, const arr<string
 
 void select(const json& structure, arr<string> inputQuery){
     selectComm query = toSelectQuery(inputQuery);//получаем имена таблиц, колонки и условия для выборки
-    for (size_t i = 0; i < query.tables.size; ++i){//для всех таблиц проверяем их существование
+    for (size_t i = 0; i < query.tables.get_size(); ++i){//для всех таблиц проверяем их существование
         tableCheck(query.tables[i], structure);
     }
-    if (query.condition.size != 0){
+    if (query.condition.get_size() != 0){
         arr<string> cond; //младший сын
         cond = splitToArr(unsplit(query.condition), " OR ");
         arr<arr<string>> condit; //средний сын
-        for (size_t i = 0; i < cond.size; ++i){
+        for (size_t i = 0; i < cond.get_size(); ++i){
             condit.push_back(splitToArr(cond[i], " AND "));
         }
-        arr<arr<arr<string>>> condition(condit.size); //старший сын
-        condition.size = condit.size;
-        for (size_t i = 0; i < condit.size; ++i){
-            for (size_t j = 0; j < condit[i].size; ++j){
+        arr<arr<arr<string>>> condition(condit.get_size()); //старший сын
+        for (size_t i = 0; i < condit.get_size(); ++i){
+            for (size_t j = 0; j < condit[i].get_size(); ++j){
                 condition[i].push_back(splitToArr(condit[i][j], ' '));
             }
         }
         arr<int> nums;
-        for (size_t i = 0; i < query.tables.size; ++i){
+        for (size_t i = 0; i < query.tables.get_size(); ++i){
             lock(static_cast<string>(structure["name"]) + "/" + query.tables[i] + "/" + query.tables[i]);
         }
         try {
             nums = getPassNum(structure, condition);
         } catch (exception& ex) {
-            for (size_t i = 0; i < query.tables.size; ++i){
+            for (size_t i = 0; i < query.tables.get_size(); ++i){
                 unlock(static_cast<string>(structure["name"]) + "/" + query.tables[i] + "/" + query.tables[i]);
             }
             throw runtime_error(ex.what());
@@ -377,16 +379,16 @@ void select(const json& structure, arr<string> inputQuery){
         string firstWord;
         string secondWord;
         ofstream crossJoin("crossJoin.csv");
-        for (size_t i = 0; i < nums.size; ++i){
+        for (size_t i = 0; i < nums.get_size(); ++i){
             firstWord = getValueByIndex(structure, query.tables[0], query.columns, nums[i]);
-            if (firstWord == "" ||firstWord == " ") continue;
-            for (size_t j = 0; j < nums.size; ++j){
+            if (firstWord.empty() ||firstWord == " ") continue;
+            for (size_t j = 0; j < nums.get_size(); ++j){
                 secondWord = getValueByIndex(structure, query.tables[1], query.columns, nums[j]);
-                if (secondWord == "" || secondWord == " ") continue;
+                if (secondWord.empty() || secondWord == " ") continue;
                 crossJoin << firstWord << ';' << secondWord << endl;
             }
         }
-        for (size_t i = 0; i < query.tables.size; ++i){
+        for (size_t i = 0; i < query.tables.get_size(); ++i){
             unlock(static_cast<string>(structure["name"]) + "/" + query.tables[i] + "/" + query.tables[i]);
         }
         crossJoin.close();
@@ -401,10 +403,10 @@ void select(const json& structure, arr<string> inputQuery){
         int currPk2 = getCurrPk(path2);
         for (size_t i = 1; i < currPk1; ++i){
             firstWord = getValueByIndex(structure, query.tables[0], query.columns, i);
-            if (firstWord == "" ||firstWord == " ") continue;
+            if (firstWord.empty() ||firstWord == " ") continue;
             for (size_t j = 1; j < currPk2; ++j){
                 secondWord = getValueByIndex(structure, query.tables[1], query.columns, j);
-                if (secondWord == ""||firstWord == " ")  continue;
+                if (secondWord.empty()||firstWord == " ")  continue;
                 crossJoin << firstWord << ';' << secondWord << endl;
             }
         }

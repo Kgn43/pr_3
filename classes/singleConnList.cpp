@@ -1,7 +1,7 @@
 #include "singleConnList.h"
 
 template<typename T>
-bool sList<T>::find(T value) {
+bool sList<T>::find(T value) const {
     auto curr = this->head;
     while (curr != nullptr){
         if (curr->value == value) return true;
@@ -22,6 +22,7 @@ void sList<T>::delByVal(T val) {
         auto tmp = curr->next;
         curr->next = curr->next->next;
         delete tmp;
+        --this->size;
     }
 }
 
@@ -31,6 +32,7 @@ void sList<T>::delLast() {
     if (this->head->next == nullptr){
         delete this->head;
         this->head = nullptr;
+        --this->size;
     }
     else {
         auto ptr = this->head;
@@ -39,6 +41,7 @@ void sList<T>::delLast() {
         }
         delete ptr->next;
         ptr-> next = nullptr;
+        --this->size;
     }
 }
 
@@ -48,6 +51,7 @@ void sList<T>::delFirst() {
     auto first = this->head;
     this->head = this->head->next;
     delete first;
+    --this->size;
 }
 
 template<typename T>
@@ -58,10 +62,12 @@ void sList<T>::backInsert(T value) {
     }
     Node<T>* newFirst = new Node(value);
     curr->next = newFirst;
+    ++this->size;
 }
 
 template<typename T>
 void sList<T>::headInsert(T value) {
     Node<T>* newFirst = new Node(value, this->head);
     this->head = newFirst;
+    ++this->size;
 }

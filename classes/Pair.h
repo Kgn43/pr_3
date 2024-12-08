@@ -15,7 +15,7 @@ public:
     Pair(string k, string v): key(std::move(k)), value(std::move(v)) {};
 
     bool operator==(const Pair& other) const {
-        return (key == other.key) && (value == other.value);
+        return (key == other.key);
     }
 
     friend ostream& operator<<(ostream& os, const Pair& pr) {

@@ -5,7 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include "arr.h"
+#include "../classes/arr.h"
 
 
 using namespace std;

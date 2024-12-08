@@ -9,11 +9,12 @@
 using std::endl, std::cout, std::string;
 
 class hashMap {
-public:
     arr<List<Pair>> buckets;
     size_t bucketCount;
     size_t pairCount;
 
+    void coliseum();
+public:
     hashMap(): pairCount(0), bucketCount(2), buckets(2){} //создаёт 4 бакета
     hashMap(size_t num): pairCount(0), bucketCount(num), buckets(num){} //создаёт num бакетов
 
@@ -21,9 +22,10 @@ public:
     void insert(const Pair& input);
     void del(const string& key);
     size_t hash(const string& key) const;
-    void coliseum();
     Pair Get(const string& key) const;
     Pair Get() const;
+    size_t get_size() const;
+    size_t get_bucketsCount() const;
 
     friend ostream& operator<<(ostream& os, const hashMap& hS) {
         os << "{";
@@ -37,9 +39,13 @@ public:
         return os;
     }
 
-};
+    List<Pair>& operator[](size_t index) const {
+        if (index >= this->bucketCount) {
+            throw std::out_of_range("Index out of range");
+        }
+        return this->buckets[index];
+    }
 
-hashMap hMFromStr(const string& line);
-string strFromHM(hashMap input);
+};
 
 #endif //HASHMAP_H

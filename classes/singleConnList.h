@@ -8,19 +8,19 @@ using namespace std;
 
 template<typename T>
 class sList {
-public:
     Node<T>* head;
-
-    sList() : head(nullptr) {}
+    size_t size;
+public:
+    sList() : head(nullptr), size(0) {}
 
     void headInsert(T value);
     void backInsert(T value);
     void delFirst();
     void delLast();
     void delByVal(T val);
-    bool find(T value);
+    bool find(T value) const;
 
-    friend ostream& operator<<(ostream& os, const sList<T>& ls) {
+    friend ostream& operator<<(ostream& os, const sList& ls) {
         Node<T> *curr = ls.head;
         os << "{";
         while (curr != nullptr){
@@ -32,6 +32,17 @@ public:
         }
         os << "}";
         return os;
+    }
+
+    T& operator[](const size_t index) const {
+        if (index >= this->size) {
+            throw std::out_of_range("Index out of range");
+        }
+        auto tmp = this->head;
+        for (int i = 0; i != index; ++i) {
+            tmp = tmp->next;
+        }
+        return tmp->value;
     }
 
 };

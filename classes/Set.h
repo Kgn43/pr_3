@@ -10,20 +10,22 @@
 using std::cout, std::endl, std::ostream, std::to_string;
 
 class Set {
-public:
     arr<List<int>> buckets;
     size_t bucketCount;
     size_t pairCount;
 
+    void coliseum();
+    size_t hash(const int& value) const;
+public:
     Set(): buckets(BUCKETS), bucketCount(BUCKETS), pairCount(0){} //создаёт BUCKETS бакет
     explicit Set(const size_t num): buckets(num), bucketCount(num), pairCount(0){} //создаёт num бакетов
 
     void insert(const int& value);
     void del(const int& value);
     bool at(const int& value) const;
-    size_t hash(const int& value) const;
-    void coliseum();
     int Get() const;
+    size_t size() const;
+    size_t get_buckets() const;
 
     friend ostream& operator<<(ostream& os, const Set& set) {
         os << "{";
@@ -49,9 +51,13 @@ public:
         return os;
     }
 
-};
+    List<int>& operator[](size_t index) const {
+        if (index >= this->bucketCount) {
+            throw std::out_of_range("Index out of range");
+        }
+        return this->buckets[index];
+    }
 
-Set setFromStr(const string& line);
-string strFromSet(Set input);
+};
 
 #endif //SET_H
