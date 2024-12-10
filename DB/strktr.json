@@ -1,11 +1,11 @@
 {
   "name": "business",
-  "tuples_limit": 10,
+  "tuples_limit": 1000,
   "structure": {
-    "users": [ "user_id", "user_name", "key" ],
-    "order": [ "order_id", "user_id", "pair_id", "quantity", "price", "type", "closed" ],
-    "pair": ["pair.pair_id", "first_lot_id", "second_lot_id"],
-    "lot": ["lot.lot_id", "name"],
-    "user_lot": ["user_id", "user_lot.lot_id", "user_lot.quantity"]
+    "users": [ "users.user_id", "users.user_name", "users.key" ],
+    "order": [ "order.order_id", "order.user_id", "order.pair_id", "order.quantity", "order.price", "order.type", "order.closed" ],
+    "pair": ["pair.pair_id", "pair.first_lot_id", "pair.second_lot_id"],
+    "lot": ["lot.lot_id", "lot.name"],
+    "user_lot": ["user_lot.user_id", "user_lot.lot_id", "user_lot.quantity"]
   }
 }
