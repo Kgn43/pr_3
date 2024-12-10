@@ -624,13 +624,22 @@ void select(const json& structure, arr<string> inputQuery){
         string secondWord;
         ofstream crossJoin("crossJoin.csv");
         // cout << nums.tableNames << " " << nums.pass << endl << endl;
-        for (size_t i = 0; i < nums.pass.get_size(); ++i) {
-            for (size_t j = 0; j < nums.pass[i].get_size(); ++j) {
-                if (string val = getValueByIndex(structure, findTableName(structure, query.columns[j]), query.columns, nums.pass[i][nums.tableNames.find(findTableName(structure, query.columns[j]))]); !val.empty()) {
-                    crossJoin << val << ';';
+        try {
+            for (size_t i = 0; i < nums.pass.get_size(); ++i) {
+                for (size_t j = 0; j < nums.pass[i].get_size(); ++j) {
+                    if (string val = getValueByIndex(structure, findTableName(structure, query.columns[j]), query.columns, nums.pass[i][nums.tableNames.find(findTableName(structure, query.columns[j]))]); !val.empty()) {
+                        crossJoin << val;
+                        if (j + 1 != nums.pass[i].get_size()) crossJoin << ';';
+                    }
                 }
+                crossJoin << '\n';
             }
-            crossJoin << '\n';
+        }
+        catch (exception& ex) {
+            for (size_t i = 0; i < query.tables.get_size(); ++i){
+                unlock(static_cast<string>(structure["name"]) + "/" + query.tables[i] + "/" + query.tables[i]);
+            }
+            throw runtime_error(ex.what());
         }
         for (size_t i = 0; i < query.tables.get_size(); ++i){
             unlock(static_cast<string>(structure["name"]) + "/" + query.tables[i] + "/" + query.tables[i]);
