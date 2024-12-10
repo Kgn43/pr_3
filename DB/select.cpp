@@ -1,13 +1,16 @@
 #include "select.h"
 
 
+///don't even try to understand what happend here
+
+
 selectComm toSelectQuery(arr<string> query){
     if (query.get_size() <= 3){
         stringstream serr;
         serr << "wrong command: syntax error";
         throw runtime_error(serr.str());
     }
-    if (query[2] == "from"){
+    if (query[1] == "from"){
         stringstream serr;
         serr << "wrong command: there is nothing to select";
         throw runtime_error(serr.str());
@@ -92,13 +95,312 @@ int getIndexFromStr(const string& input){
 }
 
 
-arr<int> addIfNotUnic(arr<int> arr1, arr<int> arr2){
-    arr<int> output;
-    for (size_t i = 0; i < arr1.get_size(); ++i){
-        for (size_t j = 0; j < arr2.get_size(); ++j){
-            if (arr1[i] == arr2[j]){
+arr<unoConditionPass> andCondAdd(const arr<unoConditionPass> &arr1, const unoConditionPass& condit){
+    arr<unoConditionPass> output;
+    bool isNotSame = true;
+    for (size_t i = 0; i < arr1.get_size(); ++i) {
+        if (arr1[i].tableName_1 == condit.tableName_1 && arr1[i].tableName_2 == condit.tableName_2) {
+            isNotSame = false;
+            unoConditionPass tmp;
+            tmp.tableName_1 = arr1[i].tableName_1;
+            tmp.tableName_2 = condit.tableName_2;
+            for (size_t k = 0; k < arr1[i].pass.get_size(); ++k){
+                for (size_t j = 0; j < condit.pass.get_size(); ++j){
+                    if (arr1[i].pass[k] == condit.pass[j]){
+                        tmp.pass.push_back(condit.pass[j]);
+                        break;
+                    }
+                }
+            }
+            output.push_back(tmp);
+        }
+        else if(condit.tableName_2 == "SELF") {
+            if (arr1[i].tableName_1 == condit.tableName_1) {
+                isNotSame = false;
+                unoConditionPass tmp;
+                tmp.tableName_1 = arr1[i].tableName_1;
+                tmp.tableName_2 = condit.tableName_2;
+                for (size_t k = 0; k < arr1[i].pass.get_size(); ++k){
+                    for (size_t j = 0; j < condit.pass.get_size(); ++j){
+                        if (arr1[i].pass[k].key == condit.pass[j].key){
+                            tmp.pass.push_back(condit.pass[j]);
+                            break;
+                        }
+                    }
+                }
+                output.push_back(tmp);
+            }
+            else if (arr1[i].tableName_2 == condit.tableName_1) {
+                isNotSame = false;
+                unoConditionPass tmp;
+                tmp.tableName_1 = arr1[i].tableName_1;
+                tmp.tableName_2 = condit.tableName_2;
+                for (size_t k = 0; k < arr1[i].pass.get_size(); ++k){
+                    for (size_t j = 0; j < condit.pass.get_size(); ++j){
+                        if (arr1[i].pass[k].value == condit.pass[j].key){
+                            tmp.pass.push_back(condit.pass[j]);
+                            break;
+                        }
+                    }
+                }
+                output.push_back(tmp);
+            }
+        }
+        else if (arr1[i].tableName_1 == condit.tableName_1 && arr1[i].tableName_2 != condit.tableName_2) {
+            isNotSame = false;
+            unoConditionPass tmp1;
+            tmp1.tableName_1 = arr1[i].tableName_1;
+            tmp1.tableName_2 = arr1[i].tableName_2;
+            unoConditionPass tmp2;
+            tmp2.tableName_1 = condit.tableName_1;
+            tmp2.tableName_2 = condit.tableName_2;
+            for (size_t k = 0; k < arr1[i].pass.get_size(); ++k){
+                for (size_t j = 0; j < condit.pass.get_size(); ++j){
+                    if (arr1[i].pass[k].key == condit.pass[j].key){
+                        tmp1.pass.push_back(arr1[i].pass[k]);
+                        tmp2.pass.push_back(condit.pass[j]);
+                        break;
+                    }
+                }
+            }
+            output.push_back(tmp1);
+            output.push_back(tmp2);
+        }
+        else if (arr1[i].tableName_1 != condit.tableName_1 && arr1[i].tableName_2 == condit.tableName_2) {
+            isNotSame = false;
+            unoConditionPass tmp1;
+            tmp1.tableName_1 = arr1[i].tableName_1;
+            tmp1.tableName_2 = arr1[i].tableName_2;
+            unoConditionPass tmp2;
+            tmp2.tableName_1 = condit.tableName_1;
+            tmp2.tableName_2 = condit.tableName_2;
+            for (size_t k = 0; k < arr1[i].pass.get_size(); ++k){
+                for (size_t j = 0; j < condit.pass.get_size(); ++j){
+                    if (arr1[i].pass[k].value == condit.pass[j].value){
+                        tmp1.pass.push_back(arr1[i].pass[k]);
+                        tmp2.pass.push_back(condit.pass[j]);
+                        break;
+                    }
+                }
+            }
+            output.push_back(tmp1);
+            output.push_back(tmp2);
+        }
+        else if (arr1[i].tableName_1 == condit.tableName_2 && arr1[i].tableName_2 != condit.tableName_1) {
+            isNotSame = false;
+            unoConditionPass tmp1;
+            tmp1.tableName_1 = arr1[i].tableName_1;
+            tmp1.tableName_2 = arr1[i].tableName_2;
+            unoConditionPass tmp2;
+            tmp2.tableName_1 = condit.tableName_1;
+            tmp2.tableName_2 = condit.tableName_2;
+            for (size_t k = 0; k < arr1[i].pass.get_size(); ++k){
+                for (size_t j = 0; j < condit.pass.get_size(); ++j){
+                    if (arr1[i].pass[k].key == condit.pass[j].value){
+                        tmp1.pass.push_back(arr1[i].pass[k]);
+                        tmp2.pass.push_back(condit.pass[j]);
+                        break;
+                    }
+                }
+            }
+            output.push_back(tmp1);
+            output.push_back(tmp2);
+        }
+        else if (arr1[i].tableName_1 != condit.tableName_2 && arr1[i].tableName_2 == condit.tableName_1) {
+            isNotSame = false;
+            unoConditionPass tmp1;
+            tmp1.tableName_1 = arr1[i].tableName_1;
+            tmp1.tableName_2 = arr1[i].tableName_2;
+            unoConditionPass tmp2;
+            tmp2.tableName_1 = condit.tableName_1;
+            tmp2.tableName_2 = condit.tableName_2;
+            for (size_t k = 0; k < arr1[i].pass.get_size(); ++k){
+                for (size_t j = 0; j < condit.pass.get_size(); ++j){
+                    if (arr1[i].pass[k].value == condit.pass[j].key){
+                        tmp1.pass.push_back(arr1[i].pass[k]);
+                        tmp2.pass.push_back(condit.pass[j]);
+                        break;
+                    }
+                }
+            }
+            output.push_back(tmp1);
+            output.push_back(tmp2);
+        }
+        else {
+            output.push_back(arr1[i]);
+        }
+    }
+    if (isNotSame) {
+        output.push_back(condit);
+    }
+    return output;
+}
+
+
+
+arr<unoConditionPass> orCondAdd(const arr<unoConditionPass> &arr1, const arr<unoConditionPass>& condit) {
+    arr<unoConditionPass> output;
+    for (size_t i = 0; i < arr1.get_size(); ++i) {
+        output.push_back(arr1[i]);
+    }
+    bool isNotSame = true;
+    for (size_t i = 0; i < arr1.get_size(); ++i) {
+        int num;
+        for (size_t h = 0; h < condit.get_size(); ++h) {
+            num = h;
+            if (output[i].tableName_1 == condit[h].tableName_1 && output[i].tableName_2 == condit[h].tableName_2) {
+                isNotSame = false;
+                for (size_t k = 0; k < output[i].pass.get_size(); ++k){
+                    bool z = true;
+                    for (size_t j = 0; j < condit[h].pass.get_size(); ++j){
+                        if (output[i].pass[j] == condit[h].pass[k]){
+                            z = false;
+                            break;
+                        }
+                    }
+                    if (z) {
+                        output[i].pass.push_back(condit[h].pass[k]);
+                    }
+                }
+            }
+            else if(condit[h].tableName_2 == "SELF") {
+                if (output[i].tableName_1 == condit[h].tableName_1) {
+                    isNotSame = false;
+                    for (size_t k = 0; k < output[i].pass.get_size(); ++k){
+                        bool z = true;
+                        for (size_t j = 0; j < condit[h].pass.get_size(); ++j){
+                            if (output[i].pass[j].key == condit[h].pass[k].key){
+                                z = false;
+                                break;
+                            }
+                        }
+                        if (z) {
+                            int size = output[i].pass.get_size();
+                            for (size_t j = 0; j < size; ++j) {
+                                output[i].pass.push_back({condit[h].pass[k].key, output[i].pass[j].value});
+                            }
+                        }
+                    }
+                }
+                else if (arr1[i].tableName_2 == condit[h].tableName_1) {
+                    isNotSame = false;
+                    for (size_t k = 0; k < output[i].pass.get_size(); ++k){
+                        bool z = true;
+                        for (size_t j = 0; j < condit[h].pass.get_size(); ++j){
+                            if (output[i].pass[j].key == condit[h].pass[k].value){
+                                z = false;
+                                break;
+                            }
+                        }
+                        if (z) {
+                            int size = output[i].pass.get_size();
+                            for (size_t j = 0; j < size; ++j) {
+                                output[i].pass.push_back({output[i].pass[j].key, condit[h].pass[k].key});
+                            }
+                        }
+                    }
+                }
+            }
+            else {
                 output.push_back(arr1[i]);
-                break;
+            }
+        }
+        if (isNotSame) {
+            output.push_back(condit[num]);
+        }
+    }
+    return output;
+}
+
+
+arr<unoConditionPass> connectCondition(const arr<arr<unoConditionPass>> &conditionTree){
+    arr<unoConditionPass> outputArr;
+    arr<unoConditionPass> andArr;
+    for (size_t i = 0; i < conditionTree.get_size(); i++){
+        for (size_t j = 0; j < conditionTree[i].get_size(); j++){
+            if (j == 0){
+                andArr.push_back(conditionTree[i][j]);
+            }
+            else{
+                andArr = andCondAdd(andArr, conditionTree[i][j]);
+            }
+        }
+        if (i == 0) {
+            outputArr = andArr;
+        }
+        else {
+            outputArr = orCondAdd(outputArr, andArr);
+        }
+    }
+    return outputArr;
+}
+
+
+void createIndexes(const arr<arr<arr<string>>>& condition, arr<arr<unoConditionPass>>& indexes) {
+    size_t size1 = condition.get_size();
+    for (size_t i = 0; i < size1; ++i) {
+        size_t size2 = condition[i].get_size();
+        indexes[i].resize(size2);
+    }
+}
+
+
+moreConditionPass appendCondition(arr<unoConditionPass> input) {
+    size_t number = 0;
+    for (size_t j = 0; j < input.get_size(); ++j) {
+        if (!input[j].tableName_1.empty()) {
+            number = j;
+            break;
+        }
+    }
+    moreConditionPass output(input[number].pass.get_size());
+    if (input[0].tableName_2 != "SELF") {
+        output.tableNames.push_back(input[number].tableName_1);
+        output.tableNames.push_back(input[number].tableName_2);
+        for (int i = 0; i < input[number].pass.get_size(); ++i) {
+            output.pass[i].push_back(input[number].pass[i].key);
+            output.pass[i].push_back(input[number].pass[i].value);
+        }
+    }
+    else {
+        output.tableNames.push_back(input[number].tableName_1);
+        for (int j = 0; j < input[number].pass.get_size(); ++j) {
+            output.pass[j].push_back(input[number].pass[j].key);
+        }
+    }
+    for (int i = number + 1; i < input.get_size(); ++i) {
+        if (input[i].tableName_2 != "SELF") {
+            if (output.tableNames.find(input[i].tableName_1) == -1 && output.tableNames.find(input[i].tableName_2) != -1) {
+                output.tableNames.push_back(input[i].tableName_1);
+                int tabInd = output.tableNames.find(input[i].tableName_2);
+                for (int j = 0; j < input[i].pass.get_size(); ++j) {
+                    if (output.pass[j][tabInd] == input[i].pass[j].key) {
+                        output.pass[j].push_back(input[i].pass[j].value);
+                    }
+                }
+            }
+            else if (output.tableNames.find(input[i].tableName_1) != -1 && output.tableNames.find(input[i].tableName_2) == -1) {
+                output.tableNames.push_back(input[i].tableName_2);
+                int tabInd = output.tableNames.find(input[i].tableName_1);
+                for (int j = 0; j < input[i].pass.get_size(); ++j) {
+                    if (output.pass[j][tabInd] == input[i].pass[j].value) {
+                        output.pass[j].push_back(input[i].pass[j].key);
+                    }
+                }
+            }
+            else if (output.tableNames.find(input[i].tableName_1) == -1 && output.tableNames.find(input[i].tableName_2) == -1) {
+                output.tableNames.push_back(input[i].tableName_1);
+                output.tableNames.push_back(input[i].tableName_2);
+                for (int j = 0; j < input[i].pass.get_size(); ++j) {
+                    output.pass[j].push_back(input[i].pass[j].key);
+                    output.pass[j].push_back(input[i].pass[j].value);
+                }
+            }
+        }
+        else {
+            output.tableNames.push_back(input[i].tableName_1);
+            for (int j = 0; j < input[i].pass.get_size(); ++j) {
+                output.pass[j].push_back(input[i].pass[j].key);
             }
         }
     }
@@ -106,76 +408,8 @@ arr<int> addIfNotUnic(arr<int> arr1, arr<int> arr2){
 }
 
 
-
-arr<int> unicAppend(arr<int> inArr1, arr<int> inArr2) {
-    bool isAppend;
-    arr<int> outArr;
-    if (inArr1.get_size() != 0){
-        outArr.push_back(inArr1[0]);
-    }
-    else if (inArr2.get_size() != 0){
-        outArr.push_back(inArr2[0]);
-    }
-    else {
-        return outArr;
-    }
-    for (size_t i = 0; i < inArr1.get_size(); i++){
-        isAppend = true;
-        for (size_t j = 0; j < outArr.get_size(); j++){
-            if (outArr[j] == inArr1[i]) isAppend = false;
-        }
-        if (isAppend){
-            outArr.push_back(inArr1[i]);
-        }
-    }
-    for (size_t i = 0; i < inArr2.get_size(); i++){
-        isAppend = true;
-        for (size_t j = 0; j < outArr.get_size(); j++){
-            if (outArr[j] == inArr2[i]) isAppend = false;
-        }
-        if (isAppend){
-            outArr.push_back(inArr2[i]);
-        }
-    }
-    return outArr;
-}
-
-
-arr<int> connectCondition(const arr<arr<arr<int>>> &arr1){
-    arr<int> outputArr;
-    arr<int> andArr;
-    for (size_t i = 0; i < arr1.get_size(); i++){
-        for (size_t j = 0; j < arr1[i].get_size(); j++){
-            if (j == 0){
-                andArr = arr1[i][j];
-            }
-            else{
-                andArr = addIfNotUnic(andArr, arr1[i][j]);
-            }
-        }
-        outputArr = unicAppend(outputArr, andArr);
-        if (outputArr.get_size() != 0) {
-            outputArr.sort();
-        }
-    }
-    return outputArr;
-}
-
-
-void createIndexes(const arr<arr<arr<string>>>& condition, arr<arr<arr<int>>>& indexes) {
-    // Убедимся, что массивы идентичных размеров
-    size_t size1 = condition.get_size();
-    indexes.resize(size1);
-    for (size_t i = 0; i < size1; ++i) {
-        size_t size2 = condition[i].get_size();
-        indexes[i].resize(size2);
-    
-    }
-}
-
-
-arr<int> getPassNum(const json& structure, const arr<arr<arr<string>>>& condition){
-    arr<arr<arr<int>>> indexes(condition.get_size());
+moreConditionPass getPassNum(const json& structure, const arr<arr<arr<string>>>& condition){
+    arr<arr<unoConditionPass>> indexes(condition.get_size());
     createIndexes(condition, indexes);
     string firstOperand;
     string secondOperand;
@@ -213,57 +447,57 @@ arr<int> getPassNum(const json& structure, const arr<arr<arr<string>>>& conditio
                     serr << "wrong table name";
                     throw runtime_error(serr.str());
                 }
-                else {
-                    table1Name = findTableName(structure, firstOperand);//находим имя таблицы
-                    tableCheck(table1Name, structure);//проверяем на случай отсутствия
-                    table2Name = findTableName(structure, secondOperand);//находим имя таблицы
-                    tableCheck(table2Name, structure);//проверяем на случай отсутствия
-                    firstPath = static_cast<string>(structure["name"]) + "/" + table1Name + "/" + table1Name;// уже не директории!!
-                    secondPath = static_cast<string>(structure["name"]) + "/" + table2Name + "/" + table2Name;
-                    firstCurrentPk = getCurrPk(firstPath); //текущий Pk1
-                    secondCurrentPk = getCurrPk(secondPath); //текущий Pk2
-                    //для всех файлов таблиц
-                    for (int k = 0; k <= firstCurrentPk / static_cast<int>(structure["tuples_limit"]) && k <= secondCurrentPk / static_cast<int>(structure["tuples_limit"]); ++k){
-                        if (k != 0){//в каком мы файле?
-                            wayToTable = "_" + to_string(i) + ".csv";
-                        }
-                        else {
-                            wayToTable = ".csv";
-                        }
-                        //открываем потоки чтения файлов таблиц
-                        firstStream.open(firstPath + wayToTable);
-                        //разбиваем заголовки на массив
-                        firstTableHeaders = getHeaders(firstPath + wayToTable);
-                        secondTableHeaders = getHeaders(secondPath + wayToTable);
-                        //находим в этих заголовках индекс колонки из проверяемого условия
-                        firstHeaderNumber = firstTableHeaders.find(firstOperand);
-                        secondHeaderNumber = secondTableHeaders.find(secondOperand);
-                        //считываем строки пока можем
-                        while (getline(firstStream, firstGottenLine)){
-                            if (firstGottenLine.empty() || firstGottenLine == " ") continue;
-                            secondStream.open(secondPath + wayToTable);
-                            while (getline(secondStream, secondGottenLine)) {
-                                if (secondGottenLine.empty() || secondGottenLine == " ") continue;
-                                if (oper == "="){
-                                    //разбиваем строку для обращения по индексу колонки
-                                    firstSplitedLine = splitToArr(firstGottenLine, ';');
-                                    secondSplitedLine = splitToArr(secondGottenLine, ';');
-                                    //cout << firstSplitedLine << " " << firstHeaderNumber << endl << secondSplitedLine << secondHeaderNumber << endl;
-                                    //проверка ОДНОГО условия
-                                    if (firstSplitedLine[firstHeaderNumber] == secondSplitedLine[secondHeaderNumber]) {
-                                        indexes[i][j].push_back(getIndexFromStr(firstGottenLine));
-                                    }
-                                }
-                                else {
-                                    stringstream serr;
-                                    serr << "wrong operator";
-                                    throw runtime_error(serr.str());
+                table1Name = findTableName(structure, firstOperand);//находим имя таблицы
+                tableCheck(table1Name, structure);//проверяем на случай отсутствия
+                table2Name = findTableName(structure, secondOperand);//находим имя таблицы
+                tableCheck(table2Name, structure);//проверяем на случай отсутствия
+                firstPath = static_cast<string>(structure["name"]) + "/" + table1Name + "/" + table1Name;// уже не директории!!
+                secondPath = static_cast<string>(structure["name"]) + "/" + table2Name + "/" + table2Name;
+                firstCurrentPk = getCurrPk(firstPath); //текущий Pk1
+                secondCurrentPk = getCurrPk(secondPath); //текущий Pk2
+                //для всех файлов таблиц
+                for (int k = 0; k <= firstCurrentPk / static_cast<int>(structure["tuples_limit"]) && k <= secondCurrentPk / static_cast<int>(structure["tuples_limit"]); ++k){
+                    if (k != 0){//в каком мы файле?
+                        wayToTable = "_" + to_string(i) + ".csv";
+                    }
+                    else {
+                        wayToTable = ".csv";
+                    }
+                    //открываем потоки чтения файлов таблиц
+                    firstStream.open(firstPath + wayToTable);
+                    //разбиваем заголовки на массив
+                    firstTableHeaders = getHeaders(firstPath + wayToTable);
+                    secondTableHeaders = getHeaders(secondPath + wayToTable);
+                    //находим в этих заголовках индекс колонки из проверяемого условия
+                    firstHeaderNumber = firstTableHeaders.find(firstOperand);
+                    secondHeaderNumber = secondTableHeaders.find(secondOperand);
+                    //считываем строки пока можем
+                    indexes[i][j].tableName_1 = table1Name;
+                    indexes[i][j].tableName_2 = table2Name;
+                    while (getline(firstStream, firstGottenLine)){
+                        if (firstGottenLine.empty() || firstGottenLine == " ") continue;
+                        secondStream.open(secondPath + wayToTable);
+                        while (getline(secondStream, secondGottenLine)) {
+                            if (secondGottenLine.empty() || secondGottenLine == " ") continue;
+                            if (oper == "="){
+                                //разбиваем строку для обращения по индексу колонки
+                                firstSplitedLine = splitToArr(firstGottenLine, ';');
+                                secondSplitedLine = splitToArr(secondGottenLine, ';');
+                                //cout << firstSplitedLine << " " << firstHeaderNumber << endl << secondSplitedLine << secondHeaderNumber << endl;
+                                //проверка ОДНОГО условия
+                                if (firstSplitedLine[firstHeaderNumber] == secondSplitedLine[secondHeaderNumber]) {
+                                    indexes[i][j].pass.push_back({getIndexFromStr(firstGottenLine), getIndexFromStr(secondGottenLine)});
                                 }
                             }
-                            secondStream.close();
+                            else {
+                                stringstream serr;
+                                serr << "wrong operator";
+                                throw runtime_error(serr.str());
+                            }
                         }
-                        firstStream.close();
+                        secondStream.close();
                     }
+                    firstStream.close();
                 }
             }
             else {
@@ -286,14 +520,16 @@ arr<int> getPassNum(const json& structure, const arr<arr<arr<string>>>& conditio
                     //находим в этих заголовках индекс колонки из проверяемого условия
                     firstHeaderNumber = firstTableHeaders.find(firstOperand);
                     //считываем строки пока можем
+                    indexes[i][j].tableName_1 = table1Name;
+                    indexes[i][j].tableName_2 = "SELF";
                     while (getline(firstStream, firstGottenLine)){
-                        if (firstGottenLine == "" || firstGottenLine == " ") continue;
+                        if (firstGottenLine.empty() || firstGottenLine == " ") continue;
                         if (oper == "="){
                             //разбиваем строку для обращения по индексу колонки
                             firstSplitedLine = splitToArr(firstGottenLine, ';');
                             //проверка ОДНОГО условия
                             if (firstSplitedLine[firstHeaderNumber] == secondOperand) {
-                                indexes[i][j].push_back(getIndexFromStr(firstGottenLine));
+                                indexes[i][j].pass.push_back({getIndexFromStr(firstGottenLine), -1});
                             }
                         }
                         else {
@@ -307,23 +543,29 @@ arr<int> getPassNum(const json& structure, const arr<arr<arr<string>>>& conditio
             }
         }
     }
-    arr<int> pass = connectCondition(indexes);
-    return pass;
+    // cout << indexes << endl;
+    arr<unoConditionPass> pass = connectCondition(indexes);
+    // cout << pass << endl;
+    moreConditionPass connected = appendCondition(pass);
+    return connected;
 }
 
 
 string getValueByIndex(json structure, const string& tableName, const arr<string>& columnsName, int index){
+    //cout << tableName << " " << columnsName << " " << index << "\n";
     string path = static_cast<string>(structure["name"]) + "/" + tableName + "/" + tableName;
     arr<string> headers = getHeaders(path + ".csv");
+    //cout << headers << "\n";
     int ind;
     for (size_t i = 0; i < columnsName.get_size(); ++i){
         ind = headers.find(columnsName[i]);
         if (ind != -1) break;
     }
     if (ind == -1) {
-        stringstream serr;
-        serr << "there is no such column name in any tabulations";
-        throw runtime_error(serr.str());
+        return "";
+        // stringstream serr;
+        // serr << "there is no such column name in any tabulations";
+        // throw runtime_error(serr.str());
     }
     if (index >= 1000){//в каком мы файле?
         path += "_" + to_string((index/1000)) + ".csv";
@@ -347,7 +589,9 @@ string getValueByIndex(json structure, const string& tableName, const arr<string
 
 
 void select(const json& structure, arr<string> inputQuery){
+    //cout << inputQuery << endl;
     selectComm query = toSelectQuery(inputQuery);//получаем имена таблиц, колонки и условия для выборки
+    // cout << query.columns << " " << query.tables <<" "<< query.condition << endl;
     for (size_t i = 0; i < query.tables.get_size(); ++i){//для всех таблиц проверяем их существование
         tableCheck(query.tables[i], structure);
     }
@@ -364,7 +608,7 @@ void select(const json& structure, arr<string> inputQuery){
                 condition[i].push_back(splitToArr(condit[i][j], ' '));
             }
         }
-        arr<int> nums;
+        moreConditionPass nums;
         for (size_t i = 0; i < query.tables.get_size(); ++i){
             lock(static_cast<string>(structure["name"]) + "/" + query.tables[i] + "/" + query.tables[i]);
         }
@@ -379,14 +623,14 @@ void select(const json& structure, arr<string> inputQuery){
         string firstWord;
         string secondWord;
         ofstream crossJoin("crossJoin.csv");
-        for (size_t i = 0; i < nums.get_size(); ++i){
-            firstWord = getValueByIndex(structure, query.tables[0], query.columns, nums[i]);
-            if (firstWord.empty() ||firstWord == " ") continue;
-            for (size_t j = 0; j < nums.get_size(); ++j){
-                secondWord = getValueByIndex(structure, query.tables[1], query.columns, nums[j]);
-                if (secondWord.empty() || secondWord == " ") continue;
-                crossJoin << firstWord << ';' << secondWord << endl;
+        // cout << nums.tableNames << " " << nums.pass << endl << endl;
+        for (size_t i = 0; i < nums.pass.get_size(); ++i) {
+            for (size_t j = 0; j < nums.pass[i].get_size(); ++j) {
+                if (string val = getValueByIndex(structure, findTableName(structure, query.columns[j]), query.columns, nums.pass[i][nums.tableNames.find(findTableName(structure, query.columns[j]))]); !val.empty()) {
+                    crossJoin << val << ';';
+                }
             }
+            crossJoin << '\n';
         }
         for (size_t i = 0; i < query.tables.get_size(); ++i){
             unlock(static_cast<string>(structure["name"]) + "/" + query.tables[i] + "/" + query.tables[i]);

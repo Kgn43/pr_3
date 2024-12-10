@@ -1,21 +1,17 @@
 #ifndef PAIR_H
 #define PAIR_H
 
-#include <string>
-#include <sstream>
-
-using std::string, std::ostream;
-
+template <typename T, typename U>
 class Pair{
 public:
-    string key;
-    string value;
+    T key;
+    U value;
 
-    Pair(): key(""), value("") {};
-    Pair(string k, string v): key(std::move(k)), value(std::move(v)) {};
+    Pair(): key(0), value(0) {};
+    Pair(T k, U v): key(k), value(v) {};
 
     bool operator==(const Pair& other) const {
-        return (key == other.key);
+        return (key == other.key && value == other.value);
     }
 
     friend ostream& operator<<(ostream& os, const Pair& pr) {
@@ -24,9 +20,4 @@ public:
     }
 
 };
-
-
-Pair splitToPair(const string& inputLine,const char &delimiter);
-string unsplitFromPair(const Pair& input, const char &delimiter);
-
 #endif //PAIR_H

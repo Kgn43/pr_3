@@ -34,6 +34,7 @@ protected:
 public:
     friend class Set;
     friend class hashMap;
+    friend struct unoConditionPass;
     arr() : data(nullptr), size(0), capacity(0) {}
 
     arr(size_t length) : size(length), capacity(length) {
