@@ -1,5 +1,31 @@
 #include "makeStructure.h"
 
+
+void lotNames(const nlohmann::json& structureJSON) {
+    std::fstream file("./business/lot/lot_pk_sequence.txt");
+    int pk;
+    file >> pk;
+    if (pk > 1) {
+        return;
+    }
+    file.close();
+    std::ifstream jsonFile ("../cfg.json");
+    nlohmann::json structure = nlohmann::json::parse(jsonFile);
+    for (int i = 0; i < structure["lots"].size(); i++) {
+        std::string erq = "insert into lot values " + std::to_string(i + 1) + ' ' + structure["lots"][i].get<std::string>();
+        userQuery(erq, structureJSON);
+    }
+    int ctr = 0;
+    for (int i = 0; i < structure["lots"].size(); i++) {
+        for (int j = 0; j < structure["lots"].size(); ++j) {
+            ctr++;
+            std::string erq = "insert into pair values " + std::to_string(ctr) + ' ' + structure["lots"][i].get<std::string>() + ' ' + structure["lots"][j].get<std::string>();
+            userQuery(erq, structureJSON);
+        }
+    }
+    jsonFile.close();
+}
+
 struct stat sb;
 
 void makeStructure(nlohmann::json structure){

@@ -588,6 +588,22 @@ string getValueByIndex(json structure, const string& tableName, const arr<string
 }
 
 
+void DecardJoin(const string &filePath1, const string &filePath2, const selectComm &command) {
+    ofstream output("xjoinTmp.csv");
+    ifstream input1(filePath1);
+    ifstream input2(filePath2);
+    string line1;
+    string line2;
+    while (getline(input1, line1)) {
+        if (line1.empty()) continue;
+        while (getline(input2, line2)) {
+            if (line2.empty()) continue;
+            output << line1 << ';' << line2 << endl;
+        }
+    }
+}
+
+
 void select(const json& structure, arr<string> inputQuery){
     //cout << inputQuery << endl;
     selectComm query = toSelectQuery(inputQuery);//получаем имена таблиц, колонки и условия для выборки

@@ -9,6 +9,19 @@ commands commandRequest(const std::string &input){
 }
 
 
+string selectRes() {
+    string res = "";
+    string part;
+    ifstream file("crossJoin.csv");
+    if (file.is_open()) {
+        while (getline(file, part)) {
+            res += part + '\n';
+        }
+    }
+    return res;
+}
+
+
 string userQuery(const string& userQuery, const json& structureJSON){
     const arr<string> query = splitToArr(userQuery);
     if (query.get_size() == 0){
@@ -19,13 +32,13 @@ string userQuery(const string& userQuery, const json& structureJSON){
         switch (comm) {
             case Insert:
                 insert(structureJSON, query);
-                break;
+                return "Success!";
             case Del:
                 del(structureJSON, query);
-                break;
+                return "Success!";
             case Select:
                 select(structureJSON, query);
-                break;
+                return selectRes();
             case Wrong:
                 throw runtime_error("Wrong syntax");
         }

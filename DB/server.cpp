@@ -11,7 +11,6 @@
 #include "userQuery.h"
 
 
-
 void requestProcessing(const int clientSocket, const sockaddr_in& clientAddress, const nlohmann::json& structure) {
     mutex userMutex;
     char receive[1024] = {};
@@ -26,11 +25,16 @@ void requestProcessing(const int clientSocket, const sockaddr_in& clientAddress,
             isExit = true;
             continue;
         }
+        cout << "from [" << clientAddress.sin_addr.s_addr << "] received \"" << receive << '\"' << endl;
         if (receive == "disconnect") {
             isExit = true;
             continue;
         }
         string result = userQuery(receive ,structure);
+        if (result.empty()) {
+            result = "EMPTY";
+        }
+        cout << "to [" << clientAddress.sin_addr.s_addr << "] send \"" << result << '\"' << endl;
         send(clientSocket, result.c_str(), result.size(), 0);
     }
     close(clientSocket);
@@ -84,6 +88,7 @@ int main() {
         structureJSON = json::parse(jsonFile);
         jsonFile.close();
         makeStructure(structureJSON);
+        lotNames(structureJSON);
     }
     catch(exception& ex) {
         cout << ex.what() << endl;
