@@ -588,18 +588,108 @@ string getValueByIndex(json structure, const string& tableName, const arr<string
 }
 
 
-void DecardJoin(const string &filePath1, const string &filePath2, const selectComm &command) {
-    ofstream output("xjoinTmp.csv");
-    ifstream input1(filePath1);
-    ifstream input2(filePath2);
-    string line1;
-    string line2;
-    while (getline(input1, line1)) {
-        if (line1.empty()) continue;
-        while (getline(input2, line2)) {
-            if (line2.empty()) continue;
-            output << line1 << ';' << line2 << endl;
+string getValueFromColumnByIndex(json structure, const string& tableName, const string &columnsName, const int index) {
+    string path = static_cast<string>(structure["name"]) + "/" + tableName + "/" + tableName;
+    arr<string> headers = getHeaders(path + ".csv");
+    int ind = headers.find(columnsName);
+    if (ind == -1) {
+        return "";
+    }
+    if (index >= 1000){//в каком мы файле?
+        path += "_" + to_string((index/1000)) + ".csv";
+    }
+    else {
+        path += ".csv";
+    }
+    ifstream stream;
+    string gottenLine;
+    stream.open(path);
+    arr<string> splitedLine;
+    while (getline(stream, gottenLine)){
+        if (gottenLine.empty() || gottenLine == " ") continue;
+        if (getIndexFromStr(gottenLine) == index){
+            splitedLine = splitToArr(gottenLine, ';');
+            return splitedLine[ind];
         }
+    }
+    return "";
+}
+
+
+void xJoinOneTabe(const json &structure, const selectComm &query) {
+    string file_path = static_cast<string>(structure["name"]) + "/" + query.tables[0] + "/" + query.tables[0];
+    const arr<string> headers = getHeaders(file_path + ".csv");
+    arr<size_t> indexes;
+    for (int i = 0; i < query.columns.get_size(); i++) {
+        indexes.push_back(headers.find(query.columns[i]));
+    }
+    ifstream stream;
+    string gottenLine;
+    stream.open(file_path);
+    arr<string> splitedLine;
+    ofstream out("crossJoin.csv");
+    while (getline(stream, gottenLine)){
+        if (gottenLine.empty() || gottenLine == " ") continue;
+        splitedLine = splitToArr(gottenLine, ';');
+        for (int i = 0; i < indexes.get_size(); i++) {
+            out << splitedLine[indexes[i]];
+            if (1 + i != indexes.get_size()) {
+                out << ';';
+            }
+        }
+        out << '\n';
+    }
+}
+
+
+void DecardJoin(const selectComm &query, const string &filePath1, const string &filePath2) {
+    const arr<string> headers1 = getHeaders(filePath1 + ".csv");
+    const arr<string> headers2 = getHeaders(filePath2 + ".csv");
+    arr<size_t> indexes1;
+    arr<size_t> indexes2;
+    for (int i = 0; i < query.columns.get_size(); i++) {
+        indexes1.push_back(headers1.find(query.columns[i]));
+    }
+    for (int i = 0; i < query.columns.get_size(); i++) {
+        indexes2.push_back(headers2.find(query.columns[i]));
+    }
+    ifstream stream1;
+    ifstream stream2;
+    string firstGottenLine;
+    string secondGottenLine;
+    stream1.open(filePath1);
+    stream2.open(filePath2);
+    arr<string> firstsplitedLine;
+    arr<string> secondsplitedLine;
+    ofstream out("xjoinTmp.csv");
+    while (getline(stream1, firstGottenLine)){
+        if (firstGottenLine.empty() || firstGottenLine == " ") continue;
+        firstsplitedLine = splitToArr(firstGottenLine, ';');
+        while (getline(stream2, secondGottenLine)){
+            if (secondGottenLine.empty() || secondGottenLine == " ") continue;
+            secondsplitedLine = splitToArr(secondGottenLine, ';');
+            for (int i = 0; i < indexes1.get_size(); i++) {
+                out << firstsplitedLine[indexes1[i]];
+                if (1 + i != indexes1.get_size()) {
+                    out << ';';
+                }
+                for (int j = 0; j < indexes2.get_size(); j++) {
+                    out << secondsplitedLine[indexes2[j]];
+                    if (1 + i != indexes2.get_size()) {
+                        out << ';';
+                    }
+                }
+                out << '\n';
+            }
+        }
+    }
+    stream1.close();
+    stream2.close();
+    out.close();
+    stream1.open("xjoinTmp.csv");
+    out.open("crossJoin.csv");
+    while (getline(stream1, firstGottenLine)) {
+        out << firstGottenLine;
     }
 }
 
@@ -663,22 +753,13 @@ void select(const json& structure, arr<string> inputQuery){
         crossJoin.close();
     }
     else{
-        string firstWord;
-        string secondWord;
-        ofstream crossJoin("crossJoin.csv");
-        string path1 = static_cast<string>(structure["name"]) + "/" + query.tables[0] + "/" + query.tables[0];
-        string path2 = static_cast<string>(structure["name"]) + "/" + query.tables[1] + "/" + query.tables[1];
-        int currPk1 = getCurrPk(path1);
-        int currPk2 = getCurrPk(path2);
-        for (size_t i = 1; i < currPk1; ++i){
-            firstWord = getValueByIndex(structure, query.tables[0], query.columns, i);
-            if (firstWord.empty() ||firstWord == " ") continue;
-            for (size_t j = 1; j < currPk2; ++j){
-                secondWord = getValueByIndex(structure, query.tables[1], query.columns, j);
-                if (secondWord.empty()||firstWord == " ")  continue;
-                crossJoin << firstWord << ';' << secondWord << endl;
-            }
+        if (query.tables.get_size() == 1) {
+            xJoinOneTabe(structure ,query);
+            return;
         }
-        crossJoin.close();
+        DecardJoin(query, query.tables[0] + "/" + query.tables[0] + "/" + query.tables[0], query.tables[1] + "/" + query.tables[1] + "/" + query.tables[1]);
+        for (int i = 2; i < query.tables.get_size(); ++i) {
+            DecardJoin(query, query.tables[i] + "/" + query.tables[i] + "/" + query.tables[i], "xjoinTmp.csv");
+        }
     }
 }
