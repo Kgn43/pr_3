@@ -623,6 +623,12 @@ void xJoinOneTabe(const json &structure, const selectComm &query) {
     for (int i = 0; i < query.columns.get_size(); i++) {
         indexes.push_back(headers.find(query.columns[i]));
     }
+    if (indexes[0] == -1) {
+            throw runtime_error("wrong index");
+    }
+    for (int i = 0; i < indexes.get_size(); ++i) {
+        cout << i << " " << headers[i] << endl;
+    }
     ifstream stream;
     string gottenLine;
     stream.open(file_path);
@@ -697,7 +703,7 @@ void DecardJoin(const selectComm &query, const string &filePath1, const string &
 void select(const json& structure, arr<string> inputQuery){
     //cout << inputQuery << endl;
     selectComm query = toSelectQuery(inputQuery);//получаем имена таблиц, колонки и условия для выборки
-    // cout << query.columns << " " << query.tables <<" "<< query.condition << endl;
+     cout << query.columns << " " << query.tables <<" "<< query.condition << endl;
     for (size_t i = 0; i < query.tables.get_size(); ++i){//для всех таблиц проверяем их существование
         tableCheck(query.tables[i], structure);
     }
