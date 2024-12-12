@@ -114,7 +114,6 @@ class Order:
 
 
 def order_process(seller : Order, buyer : Order):
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     if float(seller.price) > float(buyer.price):
         return
     if float(seller.quantity) == float(buyer.quantity):
@@ -166,10 +165,8 @@ def update():
     orders = orders.strip().split('\n')
     for first_order_id in orders:
         first_order = Order(get_selected(f"select order.order_id order.user_id order.pair_id order.quantity order.price order.type order.closed from order where order.order_id = {first_order_id}"))
-        print(first_order.id, first_order.user_id, first_order.pair_id, first_order.quantity, first_order.price, first_order.Type, first_order.closed)
         for second_order_id in orders:
             second_order = Order(get_selected(f"select order.order_id order.user_id order.pair_id order.quantity order.price order.type order.closed from order where order.order_id = {second_order_id}"))
-            print(second_order.id, second_order.user_id, second_order.pair_id, second_order.quantity, second_order.price, second_order.Type, second_order.closed)
             if ((first_order.Type != second_order.Type) and not first_order.closed and not second_order.closed and (first_order.pair_id == second_order.pair_id)):
                 if (first_order.Type == "sell"):
                     order_process(first_order, second_order)
