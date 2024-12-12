@@ -18,7 +18,13 @@ string selectRes() {
             res += part + '\n';
         }
     }
-    return res;
+    for (auto ch : res) {
+        if (ch != '\n') {
+            res.pop_back();
+            return res;
+        }
+    }
+    return "";
 }
 
 
