@@ -25,7 +25,7 @@ void requestProcessing(const int clientSocket, const sockaddr_in& clientAddress,
             isExit = true;
             continue;
         }
-        cout << "from [" << clientAddress.sin_addr.s_addr << "] received \"" << receive << '\"' << endl;
+        cout << "received from [" << clientAddress.sin_addr.s_addr << "] \"" << receive << '\"' << endl;
         if (receive == "disconnect") {
             isExit = true;
             continue;
@@ -34,7 +34,7 @@ void requestProcessing(const int clientSocket, const sockaddr_in& clientAddress,
         if (result.empty() || result == "") {
             result = "EMPTY";
         }
-        cout << "to [" << clientAddress.sin_addr.s_addr << "] send \"" << result << '\"' << endl;
+        cout << "send to [" << clientAddress.sin_addr.s_addr << "] \"" << result << '\"' << endl;
         send(clientSocket, result.c_str(), result.size(), 0);
     }
     close(clientSocket);

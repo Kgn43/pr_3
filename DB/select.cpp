@@ -558,8 +558,8 @@ string getValueByIndex(json structure, const string& tableName, const string& co
     if (ind == -1) {
         return "";
     }
-    if (index >= 1000){//в каком мы файле?
-        path += "_" + to_string((index/1000)) + ".csv";
+    if (index >= static_cast<int>(structure["tuples_limit"])){//в каком мы файле?
+        path += "_" + to_string(index/static_cast<int>(structure["tuples_limit"])) + ".csv";
     }
     else {
         path += ".csv";
@@ -586,8 +586,8 @@ string getValueFromColumnByIndex(json structure, const string& tableName, const 
     if (ind == -1) {
         return "";
     }
-    if (index >= 1000){//в каком мы файле?
-        path += "_" + to_string((index/1000)) + ".csv";
+    if (index >= static_cast<int>(structure["tuples_limit"])){//в каком мы файле?
+        path += "_" + to_string((index/static_cast<int>(structure["tuples_limit"]))) + ".csv";
     }
     else {
         path += ".csv";
@@ -608,8 +608,8 @@ string getValueFromColumnByIndex(json structure, const string& tableName, const 
 
 
 void xJoinOneTabe(const json &structure, const selectComm &query) {
-    string file_path = static_cast<string>(structure["name"]) + "/" + query.tables[0] + "/" + query.tables[0] + ".csv";
-    const arr<string> headers = getHeaders(file_path);
+    string file_path = static_cast<string>(structure["name"]) + "/" + query.tables[0] + "/" + query.tables[0];
+    const arr<string> headers = getHeaders(file_path + ".csv");
     arr<size_t> indexes;
     for (int i = 0; i < query.columns.get_size(); i++) {
         indexes.push_back(headers.find(query.columns[i]));
@@ -622,27 +622,36 @@ void xJoinOneTabe(const json &structure, const selectComm &query) {
             throw runtime_error("wrong table or column name");
         }
     }
-    cout << indexes << endl;
+    // cout << indexes << endl;
     ifstream stream;
     string gottenLine;
-    stream.open(file_path);
-    string headers2;
-    getline(stream, gottenLine);
-    cout << gottenLine << endl;
-    arr<string> splitedLine;
-    ofstream out("crossJoin.csv");
-    while (getline(stream, gottenLine)){
-        if (gottenLine.empty() || gottenLine == " ") continue;
-        splitedLine = splitToArr(gottenLine, ';');
-        for (int i = 0; i < indexes.get_size(); i++) {
-            out << splitedLine[indexes[i]];
-            if (1 + i != indexes.get_size()) {
-                out << ';';
-            }
+    int pk = getCurrPk(file_path);
+    for (int j = 0; j <= pk / static_cast<int>(structure["tuples_limit"]); ++j) {
+        if (j != 0) {
+            file_path += "_" + to_string(j) + ".csv";
+            stream.open(file_path);
         }
-        out << '\n';
+        else {
+            file_path += ".csv";
+            stream.open(file_path);
+            string headers2;
+            getline(stream, gottenLine);
+        }
+        arr<string> splitedLine;
+        ofstream out("crossJoin.csv");
+        while (getline(stream, gottenLine)){
+            if (gottenLine.empty() || gottenLine == " ") continue;
+            splitedLine = splitToArr(gottenLine, ';');
+            for (int i = 0; i < indexes.get_size(); i++) {
+                out << splitedLine[indexes[i]];
+                if (1 + i != indexes.get_size()) {
+                    out << ';';
+                }
+            }
+            out << '\n';
+        }
+        out.close();
     }
-    out.close();
 }
 
 
@@ -701,7 +710,7 @@ void DecardJoin(const selectComm &query, const string &filePath1, const string &
 void select(const json& structure, arr<string> inputQuery){
     //cout << inputQuery << endl;
     selectComm query = toSelectQuery(inputQuery);//получаем имена таблиц, колонки и условия для выборки
-     cout << query.columns << " " << query.tables <<" "<< query.condition << endl;
+     // cout << query.columns << " " << query.tables <<" "<< query.condition << endl;
     for (size_t i = 0; i < query.tables.get_size(); ++i){//для всех таблиц проверяем их существование
         tableCheck(query.tables[i], structure);
     }
