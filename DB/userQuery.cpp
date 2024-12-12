@@ -10,15 +10,14 @@ commands commandRequest(const std::string &input){
 
 
 string selectRes() {
-    string res = "";
+    string res;
     string part;
-    ifstream file("crossJoin.csv");
-    if (file.is_open()) {
+    if (ifstream file("crossJoin.csv"); file.is_open()) {
         while (getline(file, part)) {
             res += part + '\n';
         }
     }
-    for (auto ch : res) {
+    for (const auto ch : res) {
         if (ch != '\n') {
             res.pop_back();
             return res;
@@ -52,5 +51,4 @@ string userQuery(const string& userQuery, const json& structureJSON){
     catch(exception& ex) {
         return ex.what();
     }
-    return "Success!";
 }
