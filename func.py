@@ -92,8 +92,30 @@ def new_user(username : str):
     return {"key": key}
 
 
-def update():
-    print(123)
+def spend_money(user_id, lot_id, money):
+    current_data = get_selected(f"select user_lot.quantity from user_lot where user_lot.user_id = {user_id} AND user_lot.lot_id = {lot_id}")
+    current_money = current_data
+    if not current_money:
+        raise ValueError("wrong request")
+    if float(current_money) < float(money):
+        raise ValueError("not enough money")
+    total_money = float(current_money) - float(money)
+    safe_send(f"delete from user_lot where user_lot.user_id = {user_id} AND user_lot.lot_id = {lot_id}")
+    safe_send(f"insert into user_lot values {user_id} {lot_id} {total_money}")
+
+
+def get_money(user_id, lot_id, money):
+    if not user_id or not lot_id:
+        raise ValueError("wrong request")
+    current_data = get_selected(f"select user_lot.quantity from user_lot where user_lot.user_id = {user_id} AND user_lot.lot_id = {lot_id}")
+    current_money = current_data
+    if not current_money:
+        raise ValueError("wrong request")
+    if not is_number(money):
+        raise ValueError("given money value isn't number")
+    safe_send(f"delete from user_lot where user_lot.user_id = {user_id} AND user_lot.lot_id = {lot_id}")
+    total_money = float(money) + float(current_money)
+    safe_send(f"insert into user_lot values {user_id} {lot_id} {total_money}")
 
 
 def new_order(key, pair_id, quantity, price, Type):
@@ -104,18 +126,20 @@ def new_order(key, pair_id, quantity, price, Type):
     if (Type != "sell" and Type != "buy"):
         raise ValueError("wrong operation type")
     user_id = get_selected(f"select users.user_id from users where users.key = {key}")
-
-    update()
-
-
     if not user_id:
         raise ValueError("wrong X-USER-KEY")
-    
-    #снять деньги
-    
-    order_id = randint(1, 1000)
-    safe_send(f"insert into order values {order_id} {user_id} {pair_id} {quantity} {price} {Type}")
-    return {"ordre_id": order_id}
+    pair = get_selected(f"select pair.first_lot_id pair.second_lot_id from pair where pair.pair_id = {pair_id}")
+    first_lot_name, second_lot_name = pair.strip().split(";")
+    first_lot_id = int(get_selected(f"select lot.lot_id from lot where lot.name = {first_lot_name}"))
+    second_lot_id = int(get_selected(f"select lot.lot_id from lot where lot.name = {second_lot_name}"))
+    if Type == "sell":
+        spend_money(user_id, first_lot_id, float(quantity)*float(price))
+    else:
+        spend_money(user_id, second_lot_id, float(quantity)*float(price))
+    safe_send("update")
+    new_order_id = randint(1, 1000)
+    safe_send(f"insert into order values {new_order_id} {user_id} {pair_id} {quantity} {price} {Type}")
+    return {"ordre_id": new_order_id}
 
 
 def get_order():
@@ -171,7 +195,18 @@ def delete_order(user_key, order_id) -> None:
     user_id = get_selected(f"select users.user_id from users where users.key = {user_key}")
     if not user_id:
         raise ValueError("wrong X-USER-KEY")
+    data = get_selected(f"select order.pair_id order.quantity order.price order.type from order where order.order_id = {order_id}")
+    pair_id, quantity, price, Type = data.strip().split(';')
+    input = get_selected(f"select pair.first_lot_id pair.second_lot_id from pair where pair.pair_id = {pair_id}")
+    first_lot_name, second_lot_name = input.strip().split(";")
+    first_lot_id = int(get_selected(f"select lot.lot_id from lot where lot.name = {first_lot_name}"))
+    second_lot_id = int(get_selected(f"select lot.lot_id from lot where lot.name = {second_lot_name}"))
+    if Type == "sell":
+        get_money(user_id, first_lot_id, float(quantity)*float(price))
+    else:
+        get_money(user_id, second_lot_id, float(quantity)*float(price))
     safe_send(f"delete from order where order.order_id = {order_id} AND order.user_id = {user_id}")
+
     
 
 def get_balance(user_key):
