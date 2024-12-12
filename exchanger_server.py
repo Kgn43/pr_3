@@ -1,6 +1,5 @@
 from http.server import SimpleHTTPRequestHandler as HTTP_handler
 from json import loads, JSONDecodeError, dumps
-
 from func import *
 
 
@@ -74,7 +73,8 @@ class Exchanger_server(HTTP_handler):
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.end_headers()
-        self.wfile.write(dumps(data).encode())
+        if data:
+            self.wfile.write(dumps(data).encode())
 
     def send_bad_response(self, error):
         self.send_response(400)

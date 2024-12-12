@@ -26,12 +26,19 @@ def send_message(message: str) -> None:
         print(f"Error while sending message: {ex}")
 
 
+def receive_more():
+    try:
+        data = DB_socket.recv(1024, socket.MSG_DONTWAIT).decode()
+    except BlockingIOError:
+        return ""
+    return data + receive_more()
+
+
+
 def receive_messages() -> Optional[str]:
     try:
         data = DB_socket.recv(1024).decode()
-        if not data:
-            print('Warning: received an empty data!')
-            return None
+        data += receive_more()
         print(f"[DEBUG]: {data = }")
         if data == "EMPTY":
             return None
@@ -45,7 +52,7 @@ def receive_messages() -> Optional[str]:
         print(f"Error while sending message: {ex}")
 
 
-def get_piece(query: str) -> Optional[str]:
+def get_selected(query: str) -> Optional[str]:
     send_message(query)
     res = receive_messages()
     if not res:
@@ -53,23 +60,35 @@ def get_piece(query: str) -> Optional[str]:
     return res.strip()
 
 
+def safe_send(query):
+    send_message(query)
+    res = receive_messages()
+    if res != "Success!":
+        raise Exception
+
+
 def gen_id(length: int = 32) -> str:
     return ''.join(choice(hexdigits) for _ in range(length))
+
+def is_number(n):
+    try:
+        float(n)
+        return True
+    except ValueError:
+        return False
 
 
 def new_user(username : str):
     if not username:
         raise ValueError("Please type a username")
-    if get_piece(f"select users.user_name from users where users.user_name = '{username}'"):
+    if get_selected(f"select users.user_name from users where users.user_name = {username}"):
         raise ValueError("This user already exist")
     user_id = randint(1, 1000)
     key = gen_id()
-    send_message(f"insert into users values {user_id} {username} {key}")
-    lot_ids = get_piece("select lot.lot_id FROM lot")
+    safe_send(f"insert into users values {user_id} {username} {key}")
+    lot_ids = get_selected("select lot.lot_id from lot")
     for lot_id in lot_ids.strip().split('\n'):
-        send_message(
-            f"insert into user_lot values {user_id} {lot_id} 1000")
-
+        safe_send(f"insert into user_lot values {user_id} {lot_id} 1000")
     return {"key": key}
 
 
@@ -77,14 +96,97 @@ def update():
     print(123)
 
 
-def new_order(KEY, pair_id, quantity, price, Type):
+def new_order(key, pair_id, quantity, price, Type):
+    if not key or not pair_id or not quantity or not price or not Type:
+        raise ValueError("you forget send some data")
+    if (not is_number(pair_id) or not is_number(quantity) or not is_number(price)):
+        raise ValueError("wrong input")
+    if (Type != "sell" and Type != "buy"):
+        raise ValueError("wrong operation type")
+    user_id = get_selected(f"select users.user_id from users where users.key = {key}")
+
     update()
-    user_id = get_piece("select users.user_1 from users where users.key = {KEY}")
+
+
+    if not user_id:
+        raise ValueError("wrong X-USER-KEY")
+    
+    #снять деньги
+    
     order_id = randint(1, 1000)
-    send_message(f"insert into order values {order_id} {username} {key}")
+    safe_send(f"insert into order values {order_id} {user_id} {pair_id} {quantity} {price} {Type}")
+    return {"ordre_id": order_id}
+
 
 def get_order():
-    # order_id, user_id, lot_id, quantity, Type, price, closed
-    return "123"
-                
+    input = get_selected(f"select order.order_id order.user_id order.pair_id order.quantity order.price order.type order.closed from order")
+    if not input:
+        raise ValueError("there is zero orders")
+    records = input.strip().split("\n")
+    result = []
+    for record in records:
+        order_id, user_id, lot_id, quantity, Type, price, closed = record.split(";")
+        result.append({
+            "order_id": order_id,
+            "user_id": user_id,
+            "lot_id": lot_id,
+            "quantity": quantity,
+            "Type": Type,
+            "price": price,
+            "closed": closed
+        })
+    return result
+
+
+def get_lot():
+    input = get_selected(f"select lot.lot_id lot.name from lot")
+    records = input.strip().split("\n")
+    result = []
+    for record in records:
+        lot_id, name = record.split(";")
+        result.append({
+            "lot_id": lot_id,
+            "name": name
+        })
+    return result
     
+
+def get_pair():
+    input = get_selected(f"select pair.pair_id pair.first_lot_id pair.second_lot_id from pair")
+    records = input.strip().split("\n")
+    result = []
+    for record in records:
+        lot_id, first, second = record.split(";")
+        result.append({
+            "pair_id": lot_id,
+            "sale_lot_id": first,
+            "buy_lot_id": second
+        })
+    return result
+
+
+def delete_order(user_key, order_id) -> None:
+    if not user_key:
+        raise ValueError("Please send X-USER-KEY header")
+    user_id = get_selected(f"select users.user_id from users where users.key = {user_key}")
+    if not user_id:
+        raise ValueError("wrong X-USER-KEY")
+    safe_send(f"delete from order where order.order_id = {order_id} AND order.user_id = {user_id}")
+    
+
+def get_balance(user_key):
+    if not user_key:
+        raise ValueError("Please send X-USER-KEY header")
+    user_id = get_selected(f"select users.user_id from users where users.key = {user_key}")
+    if not user_id:
+        raise ValueError("wrong X-USER-KEY")
+    data = get_selected(f"select user_lot.lot_id user_lot.quantity from user_lot where user_lot.user_id = {user_id}")
+    records = data.strip().split("\n")
+    result = []
+    for record in records:
+        lot_id, quantity = record.split(";")
+        result.append({
+            "lot_id": lot_id,
+            "quantity": quantity
+        })
+    return result
