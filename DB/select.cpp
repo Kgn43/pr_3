@@ -551,21 +551,12 @@ moreConditionPass getPassNum(const json& structure, const arr<arr<arr<string>>>&
 }
 
 
-string getValueByIndex(json structure, const string& tableName, const arr<string>& columnsName, int index){
-    //cout << tableName << " " << columnsName << " " << index << "\n";
+string getValueByIndex(json structure, const string& tableName, const string& columnName, int index){
     string path = static_cast<string>(structure["name"]) + "/" + tableName + "/" + tableName;
     arr<string> headers = getHeaders(path + ".csv");
-    //cout << headers << "\n";
-    int ind;
-    for (size_t i = 0; i < columnsName.get_size(); ++i){
-        ind = headers.find(columnsName[i]);
-        if (ind != -1) break;
-    }
+    size_t ind = headers.find(columnName);
     if (ind == -1) {
         return "";
-        // stringstream serr;
-        // serr << "there is no such column name in any tabulations";
-        // throw runtime_error(serr.str());
     }
     if (index >= 1000){//в каком мы файле?
         path += "_" + to_string((index/1000)) + ".csv";
@@ -578,7 +569,7 @@ string getValueByIndex(json structure, const string& tableName, const arr<string
     stream.open(path);
     arr<string> splitedLine;
     while (getline(stream, gottenLine)){
-        if (gottenLine == "" || gottenLine == " ") continue;
+        if (gottenLine.empty() || gottenLine == " ") continue;
         if (getIndexFromStr(gottenLine) == index){
             splitedLine = splitToArr(gottenLine, ';');
             return splitedLine[ind];
@@ -617,21 +608,27 @@ string getValueFromColumnByIndex(json structure, const string& tableName, const 
 
 
 void xJoinOneTabe(const json &structure, const selectComm &query) {
-    string file_path = static_cast<string>(structure["name"]) + "/" + query.tables[0] + "/" + query.tables[0];
-    const arr<string> headers = getHeaders(file_path + ".csv");
+    string file_path = static_cast<string>(structure["name"]) + "/" + query.tables[0] + "/" + query.tables[0] + ".csv";
+    const arr<string> headers = getHeaders(file_path);
     arr<size_t> indexes;
     for (int i = 0; i < query.columns.get_size(); i++) {
         indexes.push_back(headers.find(query.columns[i]));
     }
     if (indexes[0] == -1) {
-            throw runtime_error("wrong index");
+            throw runtime_error("wrong table or column name");
     }
-    for (int i = 0; i < indexes.get_size(); ++i) {
-        cout << i << " " << headers[i] << endl;
+    for (int i = 0; i < indexes.get_size(); i++) {
+        if (indexes[i] == -1) {
+            throw runtime_error("wrong table or column name");
+        }
     }
+    cout << indexes << endl;
     ifstream stream;
     string gottenLine;
     stream.open(file_path);
+    string headers2;
+    getline(stream, gottenLine);
+    cout << gottenLine << endl;
     arr<string> splitedLine;
     ofstream out("crossJoin.csv");
     while (getline(stream, gottenLine)){
@@ -645,6 +642,7 @@ void xJoinOneTabe(const json &structure, const selectComm &query) {
         }
         out << '\n';
     }
+    out.close();
 }
 
 
@@ -739,9 +737,11 @@ void select(const json& structure, arr<string> inputQuery){
         try {
             for (size_t i = 0; i < nums.pass.get_size(); ++i) {
                 for (size_t j = 0; j < nums.pass[i].get_size(); ++j) {
-                    if (string val = getValueByIndex(structure, findTableName(structure, query.columns[j]), query.columns, nums.pass[i][nums.tableNames.find(findTableName(structure, query.columns[j]))]); !val.empty()) {
-                        crossJoin << val;
-                        if (j + 1 != nums.pass[i].get_size()) crossJoin << ';';
+                    for (int k = 0; k < query.columns.get_size(); ++k) {
+                        if (string val = getValueByIndex(structure, findTableName(structure, query.columns[k]), query.columns[k], nums.pass[i][nums.tableNames.find(findTableName(structure, query.columns[k]))]); !val.empty()) {
+                            crossJoin << val;
+                            if (k + 1 != query.columns.get_size()) crossJoin << ';';
+                        }
                     }
                 }
                 crossJoin << '\n';

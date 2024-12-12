@@ -51,7 +51,7 @@ void insert(const json& structure, arr<string> inputQuery){
         int currentPk = getCurrPk(path + "/" + query.target[i]); //текущий Pk
         values = to_string(currentPk) + ";" + values;//добавили pk к вводу
         if (tableStrLen >= query.data.get_size()){
-            while (tableStrLen != query.data.get_size()){
+            while (tableStrLen + 1 != query.data.get_size()){
                 tableStrLen--;
                 values += ";";
             }

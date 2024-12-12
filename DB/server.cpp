@@ -31,7 +31,7 @@ void requestProcessing(const int clientSocket, const sockaddr_in& clientAddress,
             continue;
         }
         string result = userQuery(receive ,structure);
-        if (result.empty()) {
+        if (result.empty() || result == "") {
             result = "EMPTY";
         }
         cout << "to [" << clientAddress.sin_addr.s_addr << "] send \"" << result << '\"' << endl;
